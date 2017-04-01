@@ -55,10 +55,12 @@ var defaultOptions = {
 }
 
     function autoCritter() {
-        queenScore = document.getElementsByClassName('trait')[0].textContent;
+        keepFemale = false;
+        keepMale = false;
+        queenScore = this.game.mother().score;
         console.log('Queen Score: ' + queenScore);
 
-        kingScore = document.getElementsByClassName('trait')[6].textContent;
+        kingScore = this.game.father().score;
         console.log('King Score: ' + kingScore);
 
         queenButton = document.getElementsByClassName('female one')[0];
@@ -68,9 +70,13 @@ var defaultOptions = {
         if (this.game.femaleMound().length > 0) {
             female1 = this.game.femaleMound()[0].score;
             if (female1 > queenScore) {
-                console.log('true');
-                simulate(queenButton, 'click');
-            } else {
+                if (this.game.femaleMound()[0].totalMutations >= this.game.mother().totalMutations) {
+                    console.log('true');
+                    simulate(queenButton, 'click');
+                    keepFemale = true;
+                }
+            }
+            if (keepFemale === false) {
                 console.log('false');
                 simulate(femaleWorkerButton, 'click');
             }
@@ -78,15 +84,19 @@ var defaultOptions = {
         if (this.game.maleMound().length > 0) {
             male1 = this.game.maleMound()[0].score;
             if (male1 > kingScore) {
-                console.log('true');
-                simulate(kingButton, 'click');
-            } else {
+                if (this.game.maleMound()[0].totalMutations >= this.game.father().totalMutations) {
+                    console.log('true');
+                    simulate(kingButton, 'click');
+                    keepMale = true;
+                }
+            }
+            if (keepMale === false) {
                 console.log('false');
                 simulate(maleWorkerButton, 'click');
             }
         }
     }
-    
+
 function autoStart() {
     activeTimer = setInterval(autoCritter, 5000);
 }
