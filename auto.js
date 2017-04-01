@@ -65,8 +65,10 @@ var defaultOptions = {
 
         queenButton = document.getElementsByClassName('female one')[0];
         femaleWorkerButton = document.getElementsByClassName('mine')[1];
+		femaleSoldierButton = document.getElementsByClassName('army')[1];
         kingButton = document.getElementsByClassName('male one')[0];
         maleWorkerButton = document.getElementsByClassName('mine')[2];
+		maleSoldierButton = document.getElementsByClassName('army')[2];
 		
         if (this.game.femaleMound().length > 0) {
             female1 = this.game.femaleMound()[0].score;
@@ -79,8 +81,14 @@ var defaultOptions = {
                 keepFemale = true;
             }
             if (keepFemale === false) {
-                console.log('false');
-                simulate(femaleWorkerButton, 'click');
+				if (this.game.armyMound().length < this.game.maxArmyMoundSize()) {
+					console.log('false Soldier');
+					simulate(femaleSoldierButton, 'click');
+				}
+				else {
+					console.log('false');
+					simulate(femaleWorkerButton, 'click');
+				}
             }
 			else {
 				console.log('true');
@@ -98,14 +106,25 @@ var defaultOptions = {
                     keepMale = true;
                 }
             if (keepMale === false) {
-                console.log('false');
-                simulate(maleWorkerButton, 'click');
+				if (this.game.armyMound().length < this.game.maxArmyMoundSize()) {
+					console.log('false Soldier');
+					simulate(maleSoldierButton, 'click');
+				}
+				else {
+					console.log('false');
+					simulate(maleWorkerButton, 'click');
+				}
             }
 			else {
 				console.log('true');
                 simulate(kingButton, 'click');
 			}
         }
+		
+		if (this.game.atWar() && this.game.map().completePercentage() == '100%') {
+			this.game.EndWar();
+		}
+			
     }
 
 function autoStart() {
