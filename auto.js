@@ -67,33 +67,44 @@ var defaultOptions = {
         femaleWorkerButton = document.getElementsByClassName('mine')[1];
         kingButton = document.getElementsByClassName('male one')[0];
         maleWorkerButton = document.getElementsByClassName('mine')[2];
+		
         if (this.game.femaleMound().length > 0) {
             female1 = this.game.femaleMound()[0].score;
             if (female1 > queenScore) {
                 if (this.game.femaleMound()[0].totalMutations >= this.game.mother().totalMutations) {
-                    console.log('true');
-                    simulate(queenButton, 'click');
                     keepFemale = true;
                 }
+            }
+			else if (this.game.femaleMound()[0].totalMutations > this.game.mother().totalMutations) {
+                keepFemale = true;
             }
             if (keepFemale === false) {
                 console.log('false');
                 simulate(femaleWorkerButton, 'click');
             }
+			else {
+				console.log('true');
+                simulate(queenButton, 'click');
+			}
         }
         if (this.game.maleMound().length > 0) {
             male1 = this.game.maleMound()[0].score;
             if (male1 > kingScore) {
                 if (this.game.maleMound()[0].totalMutations >= this.game.father().totalMutations) {
-                    console.log('true');
-                    simulate(kingButton, 'click');
                     keepMale = true;
                 }
             }
+			else if (this.game.maleMound()[0].totalMutations > this.game.father().totalMutations) {
+                    keepMale = true;
+                }
             if (keepMale === false) {
                 console.log('false');
                 simulate(maleWorkerButton, 'click');
             }
+			else {
+				console.log('true');
+                simulate(kingButton, 'click');
+			}
         }
     }
 
