@@ -41,7 +41,7 @@ function extend(destination, source) {
 var eventMatchers = {
     'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
     'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
-}
+};
 var defaultOptions = {
     pointerX: 0,
     pointerY: 0,
@@ -52,83 +52,150 @@ var defaultOptions = {
     metaKey: false,
     bubbles: true,
     cancelable: true
-}
+};
 
-    function autoCritter() {
-        keepFemale = false;
-        keepMale = false;
-        queenScore = this.game.mother().score;
-        console.log('Queen Score: ' + queenScore);
+function autoCritter() {
 
-        kingScore = this.game.father().score;
-        console.log('King Score: ' + kingScore);
-
+    if (this.game.femaleMound().length > 0) {
+        mother = this.game.mother();
+        female = this.game.femaleMound()[0];
         queenButton = document.getElementsByClassName('female one')[0];
         femaleWorkerButton = document.getElementsByClassName('mine')[1];
-		femaleSoldierButton = document.getElementsByClassName('army')[1];
+        femaleSoldierButton = document.getElementsByClassName('army')[1];
+        console.log('Female');
+        kidSelect(mother, female, queenButton, femaleWorkerButton, femaleSoldierButton);
+    }
+    if (this.game.maleMound().length > 0) {
+        father = this.game.father();
+        male = this.game.maleMound()[0];
         kingButton = document.getElementsByClassName('male one')[0];
         maleWorkerButton = document.getElementsByClassName('mine')[2];
-		maleSoldierButton = document.getElementsByClassName('army')[2];
-		
-        if (this.game.femaleMound().length > 0) {
-            female1 = this.game.femaleMound()[0].score;
-            if (female1 > queenScore) {
-                if (this.game.femaleMound()[0].totalMutations >= this.game.mother().totalMutations) {
-                    keepFemale = true;
-                }
-            }
-			else if (this.game.femaleMound()[0].totalMutations > this.game.mother().totalMutations) {
-                keepFemale = true;
-            }
-            if (keepFemale === false) {
-				if (this.game.armyMound().length < this.game.maxArmyMoundSize()) {
-					console.log('false Soldier');
-					simulate(femaleSoldierButton, 'click');
-				}
-				else {
-					console.log('false');
-					simulate(femaleWorkerButton, 'click');
-				}
-            }
-			else {
-				console.log('true');
-                simulate(queenButton, 'click');
-			}
-        }
-        if (this.game.maleMound().length > 0) {
-            male1 = this.game.maleMound()[0].score;
-            if (male1 > kingScore) {
-                if (this.game.maleMound()[0].totalMutations >= this.game.father().totalMutations) {
-                    keepMale = true;
-                }
-            }
-			else if (this.game.maleMound()[0].totalMutations > this.game.father().totalMutations) {
-                    keepMale = true;
-                }
-            if (keepMale === false) {
-				if (this.game.armyMound().length < this.game.maxArmyMoundSize()) {
-					console.log('false Soldier');
-					simulate(maleSoldierButton, 'click');
-				}
-				else {
-					console.log('false');
-					simulate(maleWorkerButton, 'click');
-				}
-            }
-			else {
-				console.log('true');
-                simulate(kingButton, 'click');
-			}
-        }
-		
-		if (this.game.atWar() && this.game.map().completePercentage() == '100%') {
-			this.game.EndWar();
-		}
-			
+        maleSoldierButton = document.getElementsByClassName('army')[2];
+        console.log('Male');
+        kidSelect(father, male, kingButton, maleWorkerButton, maleSoldierButton);
     }
 
+    autoUpgrade();
+
+    //autoWar();
+}
+
+function kidSelect(parent, child, parentButton, workerButton, soldierButton) {
+    keep = false;
+
+    if (child.score > parent.score) {
+        if (child.totalMutations >= parent.totalMutations) {
+            console.log('Move to parent  ' + parent.score + ' --> ' + child.score);
+            simulate(parentButton, 'click');
+            keep = true;
+        }
+    } else if (child.totalMutations > parent.totalMutations) {
+        console.log('Move to parent new mutation score ' + parent.score + ' --> ' + child.score);
+        simulate(parentButton, 'click');
+        keep = true;
+    }
+    if (keep === false) {
+        if (this.game.armyMound().length < this.game.maxArmyMoundSize() &&
+            child.score > this.game.nations().filter(isWarTarget).sort(sort_by('highBaseValue', false, parseInt))[0].highBaseValue) {
+            console.log('Move to soldier');
+            simulate(soldierButton, 'click');
+        } else {
+            console.log('Move to worker');
+            simulate(workerButton, 'click');
+        }
+    }
+}
+
+function autoUpgrade() {
+
+    soldierButton = document.getElementsByClassName('upgrade')[8];
+    soldierCost = this.game.armyMoundUpgradeCost();
+    autoUpgradeEvent(soldierCost, soldierButton, 'Army');
+
+    factoryButton = document.getElementsByClassName('upgrade')[7];
+    factoryCost = this.game.factoryMoundUpgradeCost();
+    autoUpgradeEvent(factoryCost, factoryButton, 'Factory');
+
+    carrierButton = document.getElementsByClassName('upgrade')[6];
+    carrierCost = this.game.carrierMoundUpgradeCost();
+    autoUpgradeEvent(carrierCost, carrierButton, 'Carrier');
+
+    farmButton = document.getElementsByClassName('upgrade')[5];
+    farmCost = this.game.farmMoundUpgradeCost();
+    autoUpgradeEvent(farmCost, farmButton, 'Farm');
+
+    mineButton = document.getElementsByClassName('upgrade')[4];
+    mineCost = this.game.mineMoundUpgradeCost();
+    autoUpgradeEvent(mineCost, mineButton, 'Mine');
+}
+
+function autoUpgradeEvent(upgradeCost, button, type) {
+    if (this.game.sod() >= upgradeCost) {
+        console.log(type + ' Upgraded for ' + upgradeCost);
+        simulate(button, 'click');
+    }
+}
+
+function autoWar() {
+    nationsSort = this.game.nations().filter(isWarTarget).sort(sort_by('highBaseValue', false, parseInt));
+    //for (i = 0; i < nationsSort.length; i++) {
+    //    console.log(nationsSort[i].name + ' ' + nationsSort[i].highBaseValue + ' Defeated: ' + nationsSort[i].isDefeated());
+    //}
+
+    if (nationsSort.length > 0)
+        console.log('Next to Fight: ' + nationsSort[0].name);
+
+    //add check for if at 2
+    if (this.game.atWar() !== true) {
+        buttonIndex = document.getElementsByClassName('critterRow').length - 2;
+        for (i = this.game.armyMound().length - 1; i > 1; i--) {
+
+            if (this.game.armyMound()[i].score <= nationsSort[0].highBaseValue) {
+                critterButton = document.getElementsByClassName('critterRow')[buttonIndex];
+                simulate(critterButton, 'click');
+
+            }
+            console.log(i);
+            buttonIndex--;
+        }
+
+        recycleButton = document.getElementsByClassName('recycle')[8];
+        simulate(recycleButton, 'click');
+
+        if (this.game.armyMound().length == this.game.maxArmyMoundSize()) {
+            button = document.getElementsByClassName('war unlocked')[0];
+            //simulate(button, 'click');
+        }
+    }
+    if (this.game.atWar() && this.game.map().completePercentage() == '100%') {
+        this.game.EndWar();
+    }
+}
+
+function isWarTarget(value) {
+    if (value.isDefeated() !== true && value.isUnlocked() === true)
+        return value;
+}
+
+function fakeFilter(value) {
+    return value;
+}
+
+function printNations() {
+    nationsSortPrint = this.game.nations().filter(fakeFilter).sort(sort_by('highBaseValue', false, parseInt));
+    for (i = 0; i < nationsSortPrint.length; i++) {
+        for (var key in nationsSortPrint[i]) {
+            if (key === 'highBaseValue' || key === 'name')
+                console.log(key + ': ' + nationsSortPrint[i][key]);
+            else if (key === 'isDefeated' || key === 'isUnlocked')
+                console.log(key + ': ' + nationsSortPrint[i][key]());
+        }
+        console.log('---------------------');
+    }
+}
+
 function autoStart() {
-    activeTimer = setInterval(autoCritter, 5000);
+    activeTimer = setInterval(autoCritter, 2000);
 }
 
 function autoStop() {
